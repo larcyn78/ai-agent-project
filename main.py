@@ -8,31 +8,35 @@ load_dotenv()
 my_api_key = os.environ.get("GEMINI_API_KEY")
 
 def main():
-    client = genai.Client(api_key=my_api_key)
-    myContents = sys.argv
-    if len(myContents) < 2:
-        print("usage: uv run main.py \"<prompt>\"")
+    argv = sys.argv[1:]
+    if not argv:
+        print("AI Code Assistant")
+        print('\nUsage: python main.py "your prompt here" [--verbose]')
+        print('Example: python main.py "How do I build a calculator app?"')
         sys.exit(1)
-        
-    elif "--verbose" in myContents:
-        messages = [types.Content(role="user",parts=[types.Part(text=myContents[1])])]
-        query = client.models.generate_content(
-            model="gemini-2.0-flash-001", 
-            contents=messages
-        )
-        print(query.text)
-        print(f"User prompt:{sys.argv[1]}\nPrompt tokens: {query.usage_metadata.prompt_token_count}\nResponse tokens: {query.usage_metadata.candidates_token_count}")
-    
-    else:
-        messages = [types.Content(role="user",parts=[types.Part(text=myContents[1])])]
-        query = client.models.generate_content(
-            model="gemini-2.0-flash-001", 
-            contents=messages
-        )
-        print(query.text)
-       
-        
 
+    verbose = "--verbose" in argv
+    # positional prompt is the first non-flag arg
+    args = [a for a in argv if not a.startswith("--")]
+    if not args:
+        print("Error: missing prompt")
+        sys.exit(1)
+    user_prompt = args[0]
+
+    client = genai.Client(api_key=my_api_key)
+    messages = [types.Content(role="user", parts=[types.Part(text=user_prompt)])]
+    resp = client.models.generate_content(
+        model="gemini-2.0-flash-001",
+        contents=messages,
+    )
+
+    # print model output first (tests expect your normal output unchanged)
+    print(resp.text)
+
+    if verbose:
+        print(f'User prompt: {user_prompt}')
+        print(f'Prompt tokens: {resp.usage_metadata.prompt_token_count}')
+        print(f'Response tokens: {resp.usage_metadata.candidates_token_count}')
 
 
 
