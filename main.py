@@ -2,6 +2,7 @@ import os
 import sys
 from dotenv import load_dotenv
 from google import genai
+from google.genai import types
 
 load_dotenv()
 my_api_key = os.environ.get("GEMINI_API_KEY")
@@ -13,14 +14,23 @@ def main():
         print("usage: uv run main.py \"<prompt>\"")
         sys.exit(1)
         
-    else:
+    elif "--verbose" in myContents:
+        messages = [types.Content(role="user",parts=[types.Part(text=myContents[1])])]
         query = client.models.generate_content(
             model="gemini-2.0-flash-001", 
-            contents=myContents[1]
+            contents=messages
         )
         print(query.text)
-        print(f"Prompt tokens: {query.usage_metadata.prompt_token_count}\nResponse tokens: {query.usage_metadata.candidates_token_count}")
+        print(f"User prompt:{sys.argv[1]}\nPrompt tokens: {query.usage_metadata.prompt_token_count}\nResponse tokens: {query.usage_metadata.candidates_token_count}")
     
+    else:
+        messages = [types.Content(role="user",parts=[types.Part(text=myContents[1])])]
+        query = client.models.generate_content(
+            model="gemini-2.0-flash-001", 
+            contents=messages
+        )
+        print(query.text)
+       
         
 
 
